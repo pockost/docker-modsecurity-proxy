@@ -1,3 +1,30 @@
 A simple proxy based on pockost/nginx-modsecurity proxyfing trafic to a specific endpoint.
 
+See <https://hub.docker.com/r/pockost/nginx-modsecurity/> for more information.
+
+Example Usage :
+
+```version: "3.0"
+
+services:
+  proxy:
+    build: .
+    ports:
+      - "8080:80"
+    volumes:
+      - ./owasp-crs/rules:/etc/modsecurity/rules
+    depends_on:
+      - crs-updater
+    environment:
+      - PROXY_HOST=php
+  php:
+    image: nginx:latest
+  crs-updater:
+    image: pockost/modsecurity-crs
+    volumes:
+      - ./owasp-crs:/workdir
+    healthcheck:
+      test: ["CMD", "test", "-d", "/workdir/.git"]
+```
+
 
