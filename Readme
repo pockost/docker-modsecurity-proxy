@@ -1,14 +1,46 @@
-A simple proxy based on pockost/nginx-modsecurity proxyfing trafic to a specific endpoint.
+Supported tags and respective Dockerfile links
+==============================================
+1.15.2, latest ([1.15.2/Dockerfile](https://github.com/pockost/docker-modsecurity-proxy/blob/master/1.15.2/Dockerfile))
 
-See <https://hub.docker.com/r/pockost/nginx-modsecurity/> for more information.
 
-Example Usage :
+ModSecurity
+===========
 
-```version: "3.0"
+ModSecurity is a Web Application Firewall (WAF). There is two part :
+
+* libModSecurity is the core of the project. This one can analyse web request and apply filter based on rule set.
+* modsecurity plugins are the binding allowing webserver (Apache, Nginx, ...) to forward received request to libModSecurity.
+
+For more information you can read <https://github.com/SpiderLabs/ModSecurity/tree/v3/master>.
+
+Image building
+==============
+
+This image is based on pockost/modsecurity-nginx image and add the support of using nginx with modsecurity as a reverse proxy.
+
+Available environment variable :
+================================
+
+* `PROXY_HOST` Host on which we want to forward request
+* `PROXY_PORT` Port on which we want to forward request
+
+You can also used all environment variable available in pockost/modsecurity-nginx.
+
+Usage example
+=============
+`docker run --rm -it -e PROXY_HOST=myhost -v /path/to/rules/:/etc/modsecurity/rules/  pockost/modsecurity-proxy:latest`
+
+If you plan to used OWASP rules you can used the pockost/modsecurity-crs to automaticaly download and update rules.
+
+Here a docker-compose.yml example
+
+
+```yaml
+version: "3.0"
 
 services:
   proxy:
-    build: .
+    image: pockost/modsecurity-crs:latest
     ports:
       - "8080:80"
     volumes:
@@ -20,11 +52,16 @@ services:
   php:
     image: nginx:latest
   crs-updater:
-    image: pockost/modsecurity-crs
+    image: pockost/modsecurity-crs:latest
     volumes:
       - ./owasp-crs:/workdir
+    environment:
+      - CRS_BRANCH=origin/v3.0/master
     healthcheck:
       test: ["CMD", "test", "-d", "/workdir/.git"]
 ```
 
-
+Thanks
+======
+* ModSecurity : <https://modsecurity.org/>
+* OWASP : <https://www.owasp.org/>
